@@ -1065,11 +1065,12 @@ async function openMembers(notice) {
     ${notice ? `<div class="notice"><div>${esc(notice.text)}</div>
       <div class="cred"><span>Username <b>${esc(notice.username)}</b></span><span>Temporary password <b>${esc(notice.password)}</b></span>
         <button type="button" class="btn small" id="copyCred">Copy</button></div>
-      <div class="hint">Write this down or send it to them now — it is not shown again. They will choose their own password when they sign in.</div></div>` : ''}
+      <div class="hint">Send it to them now. It is also saved in the Members &amp; Passwords file. They will choose their own password when they sign in.</div></div>` : ''}
     ${requests.length ? `<div class="reqs"><b>${plural(requests.length, 'password reset request')}</b>
       <ul>${requests.map(u => `<li data-uid="${esc(u.id)}"><span>${esc(u.name)} <span class="hint">@${esc(u.username)} · ${fmtDate(u.reset_requested.slice(0, 10))}</span></span>
         <button class="link" data-act="reset">Set temporary password</button><button class="link" data-act="dismiss">Dismiss</button></li>`).join('')}</ul></div>` : ''}
     <div id="resetSlot"></div>
+    ${me.member_list_url ? `<p class="hint" style="margin:0 0 12px"><a href="${esc(me.member_list_url)}" target="_blank" rel="noopener">Open the Members &amp; Passwords file</a> — every member, their role and their password. It opens only for the gurukul.requisition Google account.</p>` : ''}
     <p class="section-title">${plural(users.filter(u => u.active).length, 'active member')}</p>
     <ul class="members">${users.map(u => `
       <li class="${u.active ? '' : 'off'}" data-uid="${esc(u.id)}">
@@ -1089,7 +1090,7 @@ async function openMembers(notice) {
       </div>
       <p class="form-err" id="memberErr"></p>
       <button class="btn primary">${ICON.plus} Add member</button>
-      <p class="hint" style="margin:12px 0 0">Give the member their username and this temporary password. When they first sign in, they choose their own password — you never need to know it.</p>
+      <p class="hint" style="margin:12px 0 0">Give the member their username and this temporary password. When they first sign in, they choose their own password. Both are saved in the Members &amp; Passwords file.</p>
     </form>`);
   addEyes(el);
   const addForm = el.querySelector('#addMember');
