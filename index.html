@@ -181,6 +181,9 @@
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
   /* ---------------------------------------------------------------- account */
+  .side-file { display: flex; align-items: center; gap: 8px; margin: 0 16px 10px; padding: 8px; border-radius: var(--r); font-size: 13px; color: var(--muted); text-decoration: none; }
+  .side-file:hover { background: var(--panel-2); color: inherit; }
+  .side-file[hidden] { display: none; }
   .me { border-top: 1px solid var(--line); padding: 12px 16px; position: relative; }
   .me-btn { width: 100%; display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 8px; border-radius: var(--r); cursor: pointer; text-align: left; }
   .me-btn:hover { background: var(--panel-2); }
@@ -399,6 +402,9 @@
       New Voucher</button>
     <div class="side-label">Vouchers <em id="vcount">0</em></div>
     <div class="vlist" id="vlist"></div>
+    <a class="side-file" id="memberListLink" target="_blank" rel="noopener" hidden title="Every member, their role and password. Opens only for the gurukul.requisition Google account.">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M16 7l3 3M14 9l2 2"/></svg>
+      Members &amp; Passwords</a>
     <div class="me" id="meBox">
       <button class="me-btn" id="meBtn" aria-haspopup="true"><span class="avatar" id="meAvatar"></span>
         <span style="min-width:0"><b id="meName"></b><span id="meRole"></span></span></button>
@@ -1036,6 +1042,8 @@ function showMe() {
   $('#meRole').textContent = me.is_admin ? 'Admin' : 'Member';
   $('#openMembers').hidden = !me.is_admin;
   $('#openImport').hidden = !me.is_admin;
+  $('#memberListLink').hidden = !me.member_list_url;
+  if (me.member_list_url) $('#memberListLink').href = me.member_list_url;
 }
 function modal(title, body) {
   closeModal();
