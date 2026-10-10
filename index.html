@@ -578,7 +578,7 @@ $('#loginForm').addEventListener('submit', async e => {
       store.set(r.token);
       if (r.must_change) { $('#lCurrent').value = password; $('#lPass').value = ''; return setLMode('change'); }
       $('#lPass').value = '';
-      return startApp();
+      return startApp(r.start);
     }
     if (lmode === 'setup') {
       const name = $('#lName').value.trim(), username = $('#lUser').value.trim();
@@ -615,6 +615,9 @@ $('#lSignOut').onclick = async () => { await call('logout').catch(() => {}); sto
 // ============================================================ app: vouchers
 async function loadVouchers() {
   vouchers = await call('listVouchers');
+  showVouchers();
+}
+function showVouchers() {
   $('#vcount').textContent = vouchers.length;
   $('#vlist').innerHTML = vouchers.map(v => `
     <button class="vitem ${current && v.id === current.id ? 'active' : ''}" data-id="${esc(v.id)}">
@@ -1295,15 +1298,16 @@ document.addEventListener('drop', e => { if (current && !$('#appView').hidden &&
 window.addEventListener('resize', sizeTextareas);
 
 // ============================================================ start
-async function startApp() {
+async function startApp(start) {   // `start`: everything the page needs, when sign-in already brought it
   try {
-    me = await call('me');
+    const b = start || await call('startup');
+    me = b.me;
     if (me.must_change) return showLogin('change');
-    const cfg = await call('config'); heads = cfg.heads; appUrl = IN_GOOGLE ? cfg.app_url : location.origin + location.pathname;
+    heads = b.config.heads; appUrl = IN_GOOGLE ? b.config.app_url : location.origin + location.pathname;
     $('#loginView').hidden = true; $('#boot').hidden = true; $('#appView').hidden = false;
     showMe();
-    await loadVouchers();
-    if (vouchers[0]) await openVoucher(vouchers[0].id); else render();
+    vouchers = b.vouchers; current = b.voucher;
+    showVouchers(); render();
   } catch (e) {
     if (e.status === 401 || e.status === 403) return;   // already sent to the sign-in screen
     $('#appView').hidden = true; $('#boot').hidden = false;
@@ -1319,7 +1323,7 @@ async function startApp() {
     const s = await call('authState');
     if (s.needs_setup) return showLogin('setup');
     if (s.signed_in && s.must_change) return showLogin('change');
-    if (s.signed_in) return startApp();
+    if (s.signed_in) return startApp(s.start);
     showLogin('login');
   } catch (e) {
     $('#boot').innerHTML = esc(e.message);
