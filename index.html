@@ -470,6 +470,8 @@ const EYE = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke=
 const EYE_OFF = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
 
 let heads = [], vouchers = [], current = null, queue = [], me = null, appUrl = '';
+// `vouchers` is the page's own copy of every voucher with its receipts (`current` is one of them).
+// The page works from this copy, so nothing waits for Google except sending a change, which runs in the background.
 
 function toast(msg, ms = 3600) {
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
@@ -479,7 +481,13 @@ function toast(msg, ms = 3600) {
 // The sign-in token lives in this browser only (it is not a password).
 const store = {
   get() { try { return localStorage.getItem('rm_token') || ''; } catch (e) { return store._mem || ''; } },
-  set(v) { store._mem = v; try { v ? localStorage.setItem('rm_token', v) : localStorage.removeItem('rm_token'); } catch (e) {} },
+  set(v) { store._mem = v; try { v ? localStorage.setItem('rm_token', v) : localStorage.removeItem('rm_token'); } catch (e) {} if (!v) cache.clear(); },
+};
+// The last copy of the data, kept in this browser so the page opens at once; removed on sign-out.
+const cache = {
+  load() { try { return JSON.parse(localStorage.getItem('rm_data') || 'null'); } catch (e) { return null; } },
+  save() { try { localStorage.setItem('rm_data', JSON.stringify({me, config: {heads, app_url: appUrl}, vouchers})); } catch (e) {} },
+  clear() { try { localStorage.removeItem('rm_data'); } catch (e) {} },
 };
 
 // ============================================================ talking to the server
@@ -613,23 +621,72 @@ $('#toLogin').onclick = () => setLMode('login');
 $('#lSignOut').onclick = async () => { await call('logout').catch(() => {}); store.set(''); setLMode('login'); };
 
 // ============================================================ app: vouchers
-async function loadVouchers() {
-  vouchers = await call('listVouchers');
-  showVouchers();
+const round2 = n => Math.round(n * 100) / 100;
+const totalOf = v => round2(v.receipts.reduce((s, r) => s + (Number(r.amount) || 0), 0));
+// Same order as the paper form and the server: oldest purchase first.
+function sortReceipts(v) {
+  v.receipts.sort((a, b) => { const x = (a.date || '9999') + a.uploaded_at, y = (b.date || '9999') + b.uploaded_at; return x < y ? -1 : x > y ? 1 : 0; });
 }
 function showVouchers() {
   $('#vcount').textContent = vouchers.length;
   $('#vlist').innerHTML = vouchers.map(v => `
     <button class="vitem ${current && v.id === current.id ? 'active' : ''}" data-id="${esc(v.id)}">
-      <span class="t">Voucher ${esc(v.voucher_no)}</span><span class="amt">${money(v.total)}</span>
-      <span class="s">${plural(v.count, 'receipt')} · ${fmtDate(v.date)}</span>
+      <span class="t">Voucher ${esc(v.voucher_no)}</span><span class="amt">${money(totalOf(v))}</span>
+      <span class="s">${plural(v.receipts.length, 'receipt')} · ${fmtDate(v.date)}</span>
     </button>`).join('') || '<p class="hint" style="padding:0 12px">No vouchers yet.</p>';
 }
 
+// ---- the page's copy and Google's copy
+let pending = 0, changes = 0, lastSync = 0, syncing = null, sending = Promise.resolve(), viewStale = false;
+const typing = () => document.activeElement?.dataset?.rfield || document.activeElement?.dataset?.vfield;
+
+/** Take a fresh copy from the server. */
+function adopt(b) {
+  const id = current && current.id;
+  me = b.me; heads = b.config.heads; appUrl = IN_GOOGLE ? b.config.app_url : location.origin + location.pathname;
+  vouchers = b.vouchers;
+  current = vouchers.find(v => v.id === id) || vouchers[0] || null;
+}
+/** Draw the page again from the copy, without yanking the cell someone is typing in. */
+function redraw() {
+  showVouchers();
+  if (typing()) { viewStale = true; renderQueue(); } else { viewStale = false; render(); }
+}
+/** The copy changed here: keep it for the next visit. */
+function changed() { changes++; cache.save(); }
+
+/**
+ * Send one change to Google in the background, in the order the changes were made. The page already shows it.
+ * If Google refuses it, say so and take a fresh copy so the page never shows something that was not saved.
+ */
+function save(action, args) {
+  pending++; changed();
+  const job = sending.then(() => call(action, args));
+  sending = job.catch(() => {});
+  return job.then(out => { pending--; changes++; flashSaved(); return out; },
+                  e => { pending--; changes++; toast(e.message); sync(true); throw e; });
+}
+/** Fetch a fresh copy (other members' changes). Skipped when one was fetched in the last 20 seconds unless `force`. */
+function sync(force) {
+  if (syncing) return syncing;
+  if (!force && Date.now() - lastSync < 20000) return Promise.resolve();
+  const seen = changes;
+  syncing = call('startup').then(b => {
+    syncing = null;
+    if (pending || changes !== seen) return sync(true);   // something changed here meanwhile: this copy is already old
+    lastSync = Date.now(); adopt(b); cache.save(); showMe(); redraw();
+  }, () => { syncing = null; });
+  return syncing;
+}
+window.addEventListener('beforeunload', e => { if (pending) { e.preventDefault(); e.returnValue = ''; } });   // still saving
+document.addEventListener('visibilitychange', () => { if (!document.hidden && me && !$('#appView').hidden) sync(); });
+
 async function openVoucher(id) {
-  current = await call('getVoucher', {id});
+  if (!vouchers.some(v => v.id === id)) await sync(true);   // made by someone else a moment ago
+  current = vouchers.find(v => v.id === id) || current;
   queue = queue.filter(q => q.voucherId === id || !q.error);
-  render(); loadVouchers();
+  viewStale = false; render(); showVouchers();
+  sync();
 }
 
 function banner() {
@@ -744,16 +801,10 @@ function renderQueue() {
 }
 function flashSaved() { const s = $('#saved'); if (s) { s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 1400); } }
 
-async function refresh() {
-  const focused = document.activeElement?.dataset?.rfield || document.activeElement?.dataset?.vfield;
-  current = await call('getVoucher', {id: current.id});
-  if (!focused) render(); else renderQueue();   // don't yank the cell someone is typing in
-  loadVouchers();
-}
-
 async function newVoucher() {
   try {
-    const v = await call('createVoucher', {});
+    const v = await call('createVoucher', {});   // Google picks the next voucher number
+    vouchers = vouchers.filter(x => x.id !== v.id); vouchers.unshift(v); changed();
     await openVoucher(v.id);
     toast(`Voucher ${v.voucher_no} created`);
   } catch (e) { toast(e.message); }
@@ -849,7 +900,12 @@ function pump() {
       if (p.bytes.length > 20 * 1024 * 1024) throw new Error('This file is larger than 20 MB.');
       return call('uploadReceipt', {voucher_id: job.voucherId, name: p.name, mime: p.mime, b64: toB64(p.bytes), text: p.text || ''});
     })()
-      .then(() => { queue = queue.filter(q => q !== job); if (current?.id === job.voucherId) refresh(); else loadVouchers(); })
+      .then(r => {   // the reply is the new row: add it to the copy, no second trip
+        queue = queue.filter(q => q !== job);
+        const v = vouchers.find(x => x.id === job.voucherId);
+        if (v && !v.receipts.some(x => x.id === r.id)) { v.receipts.push(r); sortReceipts(v); }
+        changed(); redraw();
+      })
       .catch(e => { job.error = e.message; renderQueue(); })
       .finally(() => { active--; pump(); });
   }
@@ -943,6 +999,7 @@ async function download(kind, btn) {
   const label = btn.innerHTML; btn.disabled = true;
   const progress = t => { btn.innerHTML = `<span class="spin"></span>${t}`; };
   progress('Preparing…');
+  await sending;   // the form is made by Google: every change must have arrived first
   const v = current, no = safeName(v.voucher_no, 20), base = `Requisition_Form_Voucher_${String(v.voucher_no || '').replace(/[^A-Za-z0-9_-]/g, '')}`;
   try {
     if (kind === 'xlsx' || kind === 'formpdf') {
@@ -1000,6 +1057,7 @@ function onSearch() {
 async function runSearch(q) {
   const seq = ++searchSeq;
   let data;
+  await sending;   // search runs on Google: let pending changes arrive first
   try { data = await call('search', {q}); } catch (e) { return toast(e.message); }
   if (seq !== searchSeq) return;
   const ts = terms(q), nv = new Set(data.results.map(r => r.voucher_id)).size;
@@ -1208,8 +1266,7 @@ async function importBundle(file) {
       } catch (e) { failed++; el.querySelector('#impErr').textContent += `${r.receipt.file_name}: ${e.message}\n`; }
     }
     status(`Done: ${plural(done, 'receipt')} imported${skipped ? `, ${skipped} already here` : ''}${failed ? `, ${failed} failed` : ''}.`);
-    await loadVouchers();
-    if (!current && vouchers[0]) openVoucher(vouchers[0].id); else if (current) refresh();
+    changes++; await sync(true);
   } catch (e) { el.querySelector('#impErr').textContent = e.message; }
 }
 
@@ -1256,13 +1313,18 @@ $('#main').addEventListener('click', async e => {
   if (dismiss) { queue = queue.filter(q => q.key !== dismiss.dataset.dismiss); return renderQueue(); }
   try {
     const del = t.closest('[data-del]');
-    if (del) { del.disabled = true; await call('deleteReceipt', {id: del.dataset.del}); return refresh(); }
+    if (del) {
+      current.receipts = current.receipts.filter(r => r.id !== del.dataset.del);
+      viewStale = false; render(); showVouchers();
+      return void save('deleteReceipt', {id: del.dataset.del}).catch(() => {});
+    }
     if (t.closest('#delVoucher')) {
       $('#moreMenu').classList.remove('open');
       if (!confirm(`Delete Voucher ${current.voucher_no} and its ${current.receipts.length} receipt(s)?`)) return;
-      await call('deleteVoucher', {id: current.id});
-      current = null; await loadVouchers();
-      if (vouchers[0]) openVoucher(vouchers[0].id); else render();
+      const id = current.id;
+      vouchers = vouchers.filter(v => v.id !== id); current = vouchers[0] || null;
+      viewStale = false; render(); showVouchers();
+      save('deleteVoucher', {id}).catch(() => {});
     }
   } catch (err) { toast(err.message); }
 });
@@ -1273,23 +1335,30 @@ $('#main').addEventListener('keydown', e => {
 $('#main').addEventListener('input', e => {
   if (e.target.tagName === 'TEXTAREA') { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 2 + 'px'; }
 });
-$('#main').addEventListener('change', async e => {
+$('#main').addEventListener('change', e => {
   const t = e.target;
-  try {
-    if (t.dataset.vfield) {
-      await call('updateVoucher', {id: current.id, changes: {[t.dataset.vfield]: t.value}});
-      current[t.dataset.vfield] = t.value;
-      if (t.dataset.vfield === 'voucher_no') render();
-      flashSaved(); loadVouchers();
-    } else if (t.dataset.rfield) {
-      const id = t.closest('tr').dataset.id;
-      await call('updateReceipt', {id, changes: {[t.dataset.rfield]: t.value}});
-      flashSaved();
-      if (t.dataset.rfield === 'head') t.previousElementSibling.style.background = headColor(t.value);
-      if (['date', 'amount'].includes(t.dataset.rfield)) { t.blur(); refresh(); }
-    }
-  } catch (err) { toast(err.message); }
+  if (t.dataset.vfield) {
+    const f = t.dataset.vfield;
+    current[f] = t.value;
+    if (f === 'voucher_no') { t.blur(); render(); }
+    showVouchers();
+    save('updateVoucher', {id: current.id, changes: {[f]: t.value}}).catch(() => {});
+  } else if (t.dataset.rfield) {
+    const f = t.dataset.rfield, id = t.closest('tr').dataset.id, r = current.receipts.find(x => x.id === id);
+    if (!r) return;
+    if (f === 'amount') {
+      const n = Number(t.value);
+      if (t.value === '' || !isFinite(n)) { t.value = Number(r.amount).toFixed(2); return toast('Amount must be a number.'); }
+      r.amount = round2(n);
+    } else r[f] = t.value;
+    if (f === 'head') t.previousElementSibling.style.background = headColor(t.value);
+    if (f === 'date' || f === 'amount') { t.blur(); sortReceipts(current); viewStale = false; render(); }
+    showVouchers();
+    save('updateReceipt', {id, changes: {[f]: t.value}})
+      .then(out => { r[f] = out[f]; r.edited_by = out.edited_by; r.edited_at = out.edited_at; cache.save(); }, () => {});
+  }
 });
+$('#main').addEventListener('focusout', () => setTimeout(() => { if (viewStale && !typing()) redraw(); }, 0));
 ['dragenter', 'dragover'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $('#drop')?.classList.add('over'); }));
 ['dragleave', 'drop'].forEach(ev => document.addEventListener(ev, e => {
   e.preventDefault(); if (ev === 'drop' || !e.relatedTarget) $('#drop')?.classList.remove('over');
@@ -1300,14 +1369,12 @@ window.addEventListener('resize', sizeTextareas);
 // ============================================================ start
 async function startApp(start) {   // `start`: everything the page needs, when sign-in already brought it
   try {
-    const b = start || await call('startup');
-    me = b.me;
-    if (me.must_change) return showLogin('change');
-    heads = b.config.heads; appUrl = IN_GOOGLE ? b.config.app_url : location.origin + location.pathname;
+    const seen = changes, b = start || await call('startup');
+    if (b.me.must_change) return showLogin('change');
+    if (pending || changes !== seen) return void sync(true);   // edited the remembered copy meanwhile
+    lastSync = Date.now(); adopt(b); cache.save();
     $('#loginView').hidden = true; $('#boot').hidden = true; $('#appView').hidden = false;
-    showMe();
-    vouchers = b.vouchers; current = b.voucher;
-    showVouchers(); render();
+    showMe(); redraw();
   } catch (e) {
     if (e.status === 401 || e.status === 403) return;   // already sent to the sign-in screen
     $('#appView').hidden = true; $('#boot').hidden = false;
@@ -1319,13 +1386,23 @@ async function startApp(start) {   // `start`: everything the page needs, when s
   document.querySelectorAll('.logo-img').forEach(i => i.src = IMG.logo);
   $('#loginView .photo').style.backgroundImage = `url(${IMG.campus})`;
   addEyes($('#loginView'));
+  // Signed in before on this browser: show the remembered copy at once, then replace it with Google's.
+  const remembered = store.get() && cache.load();
+  if (remembered) try {
+    adopt(remembered);
+    $('#boot').hidden = true; $('#appView').hidden = false;
+    showMe(); showVouchers(); render();
+  } catch (e) { cache.clear(); $('#appView').hidden = true; $('#boot').hidden = false; }
+  const seen = changes;
   try {
     const s = await call('authState');
     if (s.needs_setup) return showLogin('setup');
     if (s.signed_in && s.must_change) return showLogin('change');
-    if (s.signed_in) return startApp(s.start);
-    showLogin('login');
+    if (!s.signed_in) { cache.clear(); return showLogin('login'); }
+    if (pending || changes !== seen) return void sync(true);   // already editing the remembered copy
+    return startApp(s.start);
   } catch (e) {
+    if (!$('#appView').hidden) return toast(e.message);   // offline: the remembered copy stays readable
     $('#boot').innerHTML = esc(e.message);
   }
 })();
