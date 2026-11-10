@@ -90,6 +90,7 @@
   .overview { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; margin-bottom: 24px; }
   .fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 16px; padding: 24px; }
   .fields label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 500; }
+  .fields select { height: 40px; border: 1px solid var(--line-2); border-radius: 10px; padding: 0 8px; background: var(--panel); color: var(--ink); font-weight: 500; }
   .fields input { height: 40px; border: 1px solid var(--line-2); border-radius: 10px; padding: 0 12px; background: var(--panel); color: var(--ink); font-weight: 500; transition: border-color .15s, box-shadow .15s; }
   .fields input:hover { border-color: #cbc2b5; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--saffron) !important; box-shadow: 0 0 0 3px rgba(217,119,26,.15); }
@@ -159,7 +160,38 @@
   td.head .pill { position: relative; }
   td.head .pill i { position: absolute; left: 11px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; pointer-events: none; z-index: 1; }
   td.head select:hover { border-color: var(--line-2); }
-  td.amt { width: 110px; }
+  td.amt { width: 118px; }
+  td.amt label.gift { display: inline-flex; float: right; align-items: center; gap: 5px; margin-top: 5px; padding: 3px 8px; border-radius: 12px;
+    background: #fff1cc; border: 1px solid #e9b949; color: #7a4d00; font-size: 12px; font-weight: 600; white-space: normal; max-width: 116px; text-align: left; line-height: 1.25; font-size: 11.5px; cursor: pointer; }
+  td.amt label.gift.off { background: #f4f1ec; border-color: #d9d2c7; color: #7d736a; font-weight: 500; }
+  td.amt label.gift input { width: auto; margin: 0; accent-color: #b07800; }
+  td.amt button.check { display: inline-flex; float: right; clear: both; align-items: center; gap: 4px; margin-top: 5px; padding: 3px 8px;
+    border-radius: 999px; background: #fde8e8; border: 1px solid #e0868a; color: #a1222b; font: 600 12px/1.3 inherit; white-space: nowrap; cursor: pointer; }
+  td.amt button.check:hover { background: #fbd5d6; }
+  tr.has-gift td.num { box-shadow: inset 3px 0 0 #e9b949; }
+  tr.needs-check td.num { box-shadow: inset 3px 0 0 #d9534f; }
+  .checkcount, .giftcount { margin-left: 10px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; vertical-align: middle; }
+  .checkcount { background: #fde8e8; border: 1px solid #e0868a; color: #a1222b; }
+  .giftcount { background: #fff1cc; border: 1px solid #e9b949; color: #7a4d00; }
+  /* centers */
+  .center-pick { display: flex; align-items: center; gap: 8px; margin: 0 16px 12px; padding: 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .center-pick select { flex: 1; min-width: 0; height: 34px; border: 1px solid var(--line-2); border-radius: 8px; padding: 0 8px; font: 500 13px Inter, sans-serif; letter-spacing: 0; text-transform: none; color: var(--ink); background: var(--panel); }
+  .ctag { color: var(--maroon); font-weight: 600; }
+  .joins { background: #eaf4ec; border: 1px solid #b9d9c0; border-radius: var(--r); padding: 12px 14px; margin-bottom: 20px; }
+  .joins > b { color: #1f6b35; }
+  .joins ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 10px; }
+  .joins li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--panel); border: 1px solid #d3e7d8; border-radius: 10px; padding: 10px 12px; }
+  .joins .who { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
+  .joins .who span { color: var(--muted); font-size: 12px; }
+  label.mini { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  label.mini select { height: 32px; border: 1px solid var(--line-2); border-radius: 8px; padding: 0 6px; font-size: 13px; background: var(--panel); color: var(--ink); }
+  ul.centers { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 10px; }
+  ul.centers li { border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  ul.centers li.off { opacity: .6; }
+  ul.centers .row { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  .form-grid .wide { grid-column: 1 / -1; }
+  .form-grid select { height: 40px; border: 1px solid var(--line-2); border-radius: 10px; padding: 0 8px; background: var(--panel); }
+  .center-add { border: 1px dashed var(--line-2); border-radius: 10px; padding: 12px; }
   td.amt .money { position: relative; }
   td.amt input { text-align: right; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; color: var(--ink); }
   th.amt { text-align: right; padding-right: 16px; }
@@ -231,10 +263,11 @@
   .check { flex-direction: row !important; align-items: center; gap: 8px !important; color: var(--ink-2) !important; font-size: 13px !important; }
   .form-err { color: var(--err); font-weight: 500; font-size: 13px; min-height: 18px; margin: 8px 0 0; }
   .members { list-style: none; margin: 0 0 24px; padding: 0; border: 1px solid var(--line); border-radius: var(--r); }
-  .members li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .members li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
   .members li:last-child { border-bottom: 0; }
   .members li.off { opacity: .55; }
-  .members .who { flex: 1; min-width: 0; } .members .who b { display: block; } .members .who span { font-size: 12px; color: var(--muted); }
+  .members .who { flex: 1 1 200px; min-width: 0; } .members .who b { display: block; } .members .who span { font-size: 12px; color: var(--muted); }
+  .badge.super { background: var(--maroon-soft); color: var(--maroon); }
   .badge { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 1px 8px; background: var(--saffron-soft); color: #9a520f; }
   .link { border: 0; background: none; color: var(--maroon); font-weight: 600; cursor: pointer; font-size: 12.5px; padding: 4px 6px; border-radius: 6px; }
   .link:hover { background: var(--maroon-soft); }
@@ -342,9 +375,13 @@
   #loginView .lhint { font-size: 12px; color: var(--muted); margin: -8px 0 16px; }
   #loginView [data-mode] { display: none; }
   #loginView.m-login [data-mode~="login"], #loginView.m-setup [data-mode~="setup"], #loginView.m-forgot [data-mode~="forgot"],
-  #loginView.m-sent [data-mode~="sent"], #loginView.m-change [data-mode~="change"] { display: block; }
+  #loginView.m-sent [data-mode~="sent"], #loginView.m-change [data-mode~="change"],
+  #loginView.m-request [data-mode~="request"], #loginView.m-requested [data-mode~="requested"] { display: block; }
   #loginView.m-login label[data-mode~="login"], #loginView.m-setup label[data-mode~="setup"], #loginView.m-forgot label[data-mode~="forgot"],
-  #loginView.m-change label[data-mode~="change"] { display: flex; }
+  #loginView.m-change label[data-mode~="change"], #loginView.m-request label[data-mode~="request"] { display: flex; }
+  #loginView select { width: 100%; height: 44px; border: 1px solid var(--line-2); border-radius: 10px; padding: 0 10px; font-size: 15px; color: var(--ink); background: var(--panel); }
+  #loginView .opt { font-weight: 400; opacity: .8; }
+  #loginView .new-here { margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
   @media (max-width: 820px) {
     #loginView { grid-template-columns: 1fr; grid-template-rows: 200px 1fr; }
     #loginView .photo .cap { left: 20px; right: 20px; bottom: 20px; } #loginView .photo h2 { font-size: 22px; } #loginView .photo p { display: none; }
@@ -377,16 +414,21 @@
       <h1 id="lTitle">Sign in</h1>
       <p class="lead" id="lLead"></p>
       <div class="msg" id="lMsg" role="alert"></div>
-      <label data-mode="setup">Your full name<input id="lName" autocomplete="name" placeholder="e.g. Mukeshbhai Ramani"></label>
-      <label data-mode="login setup forgot">Username<input id="lUser" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+      <label data-mode="setup request">Your full name<input id="lName" autocomplete="name" placeholder="e.g. Mukeshbhai Ramani"></label>
+      <label data-mode="request">Phone<input id="lPhone" type="tel" autocomplete="tel" placeholder="So the admin can reach you"></label>
+      <label data-mode="request"><span>Email <span class="opt">(optional)</span></span><input id="lEmail" type="email" autocomplete="email"></label>
+      <label data-mode="request">Your center<select id="lCenter"><option value="">Loading centers…</option></select></label>
+      <label data-mode="login setup forgot request">Username<input id="lUser" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+      <p class="lhint" data-mode="request">Choose a username: letters or numbers, no spaces (e.g. priya.shah).</p>
       <label data-mode="change">Current (temporary) password<input id="lCurrent" type="password" data-pw autocomplete="current-password"></label>
       <label data-mode="login">Password<input id="lPass" type="password" data-pw autocomplete="current-password"></label>
-      <label data-mode="setup change"><span id="lNewLabel">Password</span><input id="lNew" type="password" data-pw autocomplete="new-password"></label>
-      <p class="lhint" data-mode="setup change">At least 8 characters. A short sentence is easy to remember and hard to guess.</p>
-      <label data-mode="setup change">Repeat password<input id="lNew2" type="password" data-pw autocomplete="new-password"></label>
-      <button class="main-btn" id="lGo" data-mode="login setup forgot change">Sign in</button>
+      <label data-mode="setup change request"><span id="lNewLabel">Password</span><input id="lNew" type="password" data-pw autocomplete="new-password"></label>
+      <p class="lhint" data-mode="setup change request">At least 8 characters. A short sentence is easy to remember and hard to guess.</p>
+      <label data-mode="setup change request">Repeat password<input id="lNew2" type="password" data-pw autocomplete="new-password"></label>
+      <button class="main-btn" id="lGo" data-mode="login setup forgot change request">Sign in</button>
       <div class="links" data-mode="login"><button type="button" class="linkbtn" id="toForgot">Forgot password?</button></div>
-      <div class="links" data-mode="forgot sent"><button type="button" class="linkbtn" id="toLogin">← Back to sign in</button></div>
+      <div class="links new-here" data-mode="login">New here? <button type="button" class="linkbtn" id="toRequest">Request access</button></div>
+      <div class="links" data-mode="forgot sent request requested"><button type="button" class="linkbtn" id="toLogin">← Back to sign in</button></div>
       <div class="links" data-mode="change"><button type="button" class="linkbtn" id="lSignOut">Sign out</button></div>
     </form>
   </div>
@@ -402,6 +444,7 @@
     <button class="btn primary block side-new" id="newVoucher">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       New Voucher</button>
+    <label class="center-pick" id="centerPickWrap" hidden><span>Center</span><select id="centerPick"></select></label>
     <div class="side-label">Vouchers <em id="vcount">0</em></div>
     <div class="vlist" id="vlist"></div>
     <a class="side-file" id="memberListLink" target="_blank" rel="noopener" hidden title="Every member, their role and password. Opens only for the gurukul.requisition Google account.">
@@ -472,7 +515,11 @@ const ICON = {
 const EYE = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
 const EYE_OFF = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
 
-let heads = [], vouchers = [], current = null, queue = [], me = null, appUrl = '';
+let heads = [], vouchers = [], current = null, queue = [], me = null, appUrl = '', centers = [];
+// Admins pick which center's vouchers to show ('all' = every center); members only ever have their own.
+let centerFilter = (() => { try { return localStorage.getItem('rm_center') || 'all'; } catch (e) { return 'all'; } })();
+const centerName = id => (centers.find(c => c.id === id) || {}).name || '';
+const shownVouchers = () => centerFilter === 'all' ? vouchers : vouchers.filter(v => v.center_id === centerFilter);
 // `vouchers` is the page's own copy of every voucher with its receipts (`current` is one of them).
 // The page works from this copy, so nothing waits for Google except sending a change, which runs in the background.
 
@@ -494,7 +541,7 @@ const cache = {
 };
 
 // ============================================================ talking to the server
-const OPEN_ACTIONS = new Set(['authState', 'setup', 'login', 'forgot']);
+const OPEN_ACTIONS = new Set(['authState', 'setup', 'login', 'forgot', 'requestAccess', 'centers']);
 // Inside Google the page uses google.script.run; the members' page (GitHub Pages) posts to the same
 // app without Google cookies, so Google never switches accounts.
 const API_URL = 'https://script.google.com/macros/s/AKfycbwKTp6difkDb2J5Hm4AGrhdMl2ilkWM9TeZDgzgz0Do0hcwR_naw0r1Y9bf1NF8TQ9W/exec';
@@ -552,6 +599,8 @@ const LMODES = {
   forgot: {title: 'Forgot password?', lead: 'Enter your username. Your admin will get your request and give you a temporary password.', go: 'Send request to admin', focus: '#lUser'},
   sent:   {title: 'Request sent', lead: 'If that username exists, your admin will see the request. They will give you a temporary password; after signing in with it you will choose your own.'},
   change: {title: 'Choose your own password', lead: 'You signed in with a temporary password. Please choose your own to continue.', go: 'Save and continue', focus: '#lCurrent', newLabel: 'New password'},
+  request: {title: 'Request access', lead: 'Fill in your details and choose a username and password. An admin will check and approve your request.', go: 'Send request', focus: '#lName', newLabel: 'Choose a password'},
+  requested: {title: 'Request sent', lead: 'Thank you! An admin will look at your request. Once it is approved, sign in with the username and password you just chose.'},
 };
 let lmode = 'login';
 function lmsg(text) { const m = $('#lMsg'); m.textContent = text || ''; m.className = 'msg' + (text ? ' show err' : ''); }
@@ -608,6 +657,19 @@ $('#loginForm').addEventListener('submit', async e => {
       await call('forgot', {username});
       return setLMode('sent');
     }
+    if (lmode === 'request') {
+      const a = {name: $('#lName').value.trim(), phone: $('#lPhone').value.trim(), email: $('#lEmail').value.trim(),
+                 center_id: $('#lCenter').value, username: $('#lUser').value.trim(), password: $('#lNew').value};
+      if (!a.name) return lmsg('Please enter your full name.');
+      if (a.phone.replace(/\D/g, '').length < 7) return lmsg('Please enter your phone number so the admin can reach you.');
+      if (!a.center_id) return lmsg('Please choose your center.');
+      if (!a.username) return lmsg('Please choose a username.');
+      const bad = checkNew(); if (bad) return lmsg(bad);
+      go.disabled = true;
+      await call('requestAccess', a);
+      $('#lNew').value = $('#lNew2').value = '';
+      return setLMode('requested');
+    }
     if (lmode === 'change') {
       if (!$('#lCurrent').value) return lmsg('Enter the temporary password your admin gave you.');
       const bad = checkNew(); if (bad) return lmsg(bad);
@@ -620,6 +682,15 @@ $('#loginForm').addEventListener('submit', async e => {
   finally { go.disabled = false; }
 });
 $('#toForgot').onclick = () => setLMode('forgot');
+$('#toRequest').onclick = async () => {
+  setLMode('request');
+  const sel = $('#lCenter');
+  try {
+    const list = await call('centers');
+    sel.innerHTML = (list.length > 1 ? '<option value="">Choose your center…</option>' : '') +
+      list.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  } catch (e) { sel.innerHTML = '<option value="">Could not load centers</option>'; lmsg(e.message); }
+};
 $('#toLogin').onclick = () => setLMode('login');
 $('#lSignOut').onclick = async () => { await call('logout').catch(() => {}); store.set(''); setLMode('login'); };
 
@@ -631,13 +702,23 @@ function sortReceipts(v) {
   v.receipts.sort((a, b) => { const x = (a.date || '9999') + a.uploaded_at, y = (b.date || '9999') + b.uploaded_at; return x < y ? -1 : x > y ? 1 : 0; });
 }
 function showVouchers() {
-  $('#vcount').textContent = vouchers.length;
-  $('#vlist').innerHTML = vouchers.map(v => `
+  const many = centers.length > 1, list = shownVouchers();
+  $('#centerPickWrap').hidden = !many;
+  if (many) $('#centerPick').innerHTML = `<option value="all">All centers</option>` +
+    centers.map(c => `<option value="${esc(c.id)}" ${c.id === centerFilter ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+  $('#vcount').textContent = list.length;
+  $('#vlist').innerHTML = list.map(v => `
     <button class="vitem ${current && v.id === current.id ? 'active' : ''}" data-id="${esc(v.id)}">
       <span class="t">Voucher ${esc(v.voucher_no)}</span><span class="amt">${money(totalOf(v))}</span>
-      <span class="s">${plural(v.receipts.length, 'receipt')} · ${fmtDate(v.date)}</span>
+      <span class="s">${plural(v.receipts.length, 'receipt')} · ${fmtDate(v.date)}${many && centerFilter === 'all' ? ` · <span class="ctag">${esc(centerName(v.center_id))}</span>` : ''}</span>
     </button>`).join('') || '<p class="hint" style="padding:0 12px">No vouchers yet.</p>';
 }
+$('#centerPick').onchange = e => {
+  centerFilter = e.target.value;
+  try { localStorage.setItem('rm_center', centerFilter); } catch (err) {}
+  if (current && centerFilter !== 'all' && current.center_id !== centerFilter) current = shownVouchers()[0] || null;
+  viewStale = false; render(); showVouchers();
+};
 
 // ---- the page's copy and Google's copy
 let backupInfo = null;   // set when this copy is fed by the Mac app
@@ -649,8 +730,10 @@ function adopt(b) {
   const id = current && current.id;
   me = b.me; heads = b.config.heads; appUrl = IN_GOOGLE ? b.config.app_url : location.origin + location.pathname;
   backupInfo = b.config.backup || null;
+  centers = b.config.centers || [];
+  if (centerFilter !== 'all' && !centers.some(c => c.id === centerFilter)) centerFilter = 'all';
   vouchers = b.vouchers;
-  current = vouchers.find(v => v.id === id) || vouchers[0] || null;
+  current = vouchers.find(v => v.id === id) || shownVouchers()[0] || null;
 }
 /** Draw the page again from the copy, without yanking the cell someone is typing in. */
 function redraw() {
@@ -695,9 +778,14 @@ async function openVoucher(id) {
 }
 
 function banner() {
+  // The photo and "Vaidik Culture Center" are Atlanta's; a member of another center sees their own center's name.
+  const other = centers.length === 1 && centers[0].id !== 'c1' ? centers[0] : null;
+  const cap = other
+    ? `<div class="kicker">${esc(other.name)}</div><h3>Shree Swaminarayan Gurukul</h3><p>Every receipt here supports our center and community.</p>`
+    : `<div class="kicker">Gurukul USA · Atlanta</div><h3>The Vaidik Culture Center</h3><p>Every receipt here supports our campus and community.</p>`;
   return `<section class="banner" aria-label="Gurukul campus">
     <div class="slide on"><img src="${IMG.campus}" alt="Gurukul campus" style="object-position:50% 68%"></div>
-    <div class="cap"><div class="kicker">Gurukul USA · Atlanta</div><h3>The Vaidik Culture Center</h3><p>Every receipt here supports our campus and community.</p></div>
+    <div class="cap">${cap}</div>
   </section>`;
 }
 
@@ -746,6 +834,9 @@ function render() {
         <div class="fields">
           ${field('voucher_no', 'Voucher No.')}${field('file_no', 'File No.')}${field('date', 'Form Date', 'date')}
           ${field('requestor', 'Requestor')}${field('assigned_to', 'Assigned To')}
+          ${centers.length > 1 && me.is_admin ? `<label>Center<select data-vfield="center_id">${centers.map(c =>
+              `<option value="${esc(c.id)}" ${c.id === v.center_id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>`
+            : `<label>Center<input value="${esc(centerName(v.center_id))}" disabled></label>`}
         </div>
       </section>
       <section class="card summary" aria-label="Summary">
@@ -757,7 +848,7 @@ function render() {
         </div>
       </section>
     </div>
-    ${banner()}
+    ${v.center_id === 'c1' ? banner() : ''}
     <div class="drop" id="drop" role="button" tabindex="0">
       <div class="up">${ICON.up}</div>
       <div class="txt"><b>Drop receipts here</b>
@@ -767,7 +858,10 @@ function render() {
     </div>
     <div class="queue" id="queue"></div>
     <section class="card receipts">
-      <div class="card-head"><h2>Receipts <span class="count">${n}</span></h2><span class="hint">Sorted by purchase date — the same order as the PDF</span></div>
+      <div class="card-head"><h2>Receipts <span class="count">${n}</span>${(() => {
+        const c = v.receipts.filter(r => openChecks(r).length).length, g = v.receipts.filter(r => r.gift_card > 0).length;
+        return (c ? `<span class="checkcount" title="Rows with a red ⚠ Check badge may have been read wrong: hover the badge to see why">⚠ ${c} to check</span>` : '')
+             + (g ? `<span class="giftcount" title="Receipts with a 🎁 badge were paid partly or fully with a gift card">🎁 ${g} used a gift card</span>` : ''); })()}</h2><span class="hint">Sorted by purchase date — the same order as the PDF</span></div>
       ${n ? table(v.receipts, total) : '<div class="table-empty">No receipts yet. Drop your first receipt above.</div>'}
     </section>
     <p class="hint foot-hint">${ICON.info} Every cell is editable. Head corrections teach the app for next time.</p>`;
@@ -775,17 +869,32 @@ function render() {
   sizeTextareas();
 }
 
+// Things that often mean a receipt was read wrong (same rules as the Mac app). Recomputed live, so fixing the row clears it.
+function checks(r) {
+  const out = [], amt = Number(r.amount) || 0;
+  const full = amt + (r.gift_card > 0 && !r.gift_card_used ? Number(r.gift_card) : 0);   // before any gift card deduction
+  if (!(amt > 0)) out.push('Amount is $0.00');
+  if (!String(r.store || '').trim()) out.push('Store name is missing');
+  if (!r.date) out.push('Date is missing');
+  if (r.subtotal > 0 && r.tax > 0 && Math.abs(full - r.subtotal) < 0.01)
+    out.push(`Amount is the subtotal: tax ${money(r.tax)} not added (total should be ${money(r.subtotal + r.tax)})`);
+  return out;
+}
+const openChecks = r => { const c = checks(r); return c.length && r.check_ok !== c.join('|') ? c : []; };
+
 function table(rows, total) {
   return `<div class="tablewrap"><table>
     <thead><tr><th>#</th><th>Date</th><th>Store</th><th>Item Purchased</th><th>Head</th><th class="amt">Amount</th><th style="text-align:right">Actions</th></tr></thead>
     <tbody>${rows.map((r, i) => `
-      <tr data-id="${esc(r.id)}">
+      <tr data-id="${esc(r.id)}" class="${r.gift_card > 0 ? 'has-gift' : ''} ${openChecks(r).length ? 'needs-check' : ''}">
         <td class="num">${String(i + 1).padStart(2, '0')}</td>
         <td class="date"><input type="date" data-rfield="date" value="${esc(r.date)}"></td>
         <td class="store"><input data-rfield="store" value="${esc(r.store)}" placeholder="Store?">${byLine(r)}</td>
         <td class="desc"><textarea rows="1" data-rfield="description" title="${esc((r.items || []).map(it => `${it.quantity} × ${it.name}`).join('\n'))}">${esc(r.description)}</textarea></td>
         <td class="head"><div class="pill"><i style="background:${headColor(r.head)}"></i><select data-rfield="head">${[...new Set([...heads, r.head])].map(h => `<option ${h === r.head ? 'selected' : ''}>${esc(h)}</option>`).join('')}</select></div></td>
-        <td class="amt"><div class="money"><input type="number" step="0.01" data-rfield="amount" value="${Number(r.amount).toFixed(2)}"></div></td>
+        <td class="amt"><div class="money"><input type="number" step="0.01" data-rfield="amount" value="${Number(r.amount).toFixed(2)}"></div>${openChecks(r).length ? `
+          <button class="check" data-checkok="${esc(checks(r).join('|'))}" title="${esc(openChecks(r).map(c => '• ' + c).join('\n'))}&#10;&#10;Fix the row, or click here once you have checked it is right.">⚠ Check</button>` : ''}${r.gift_card > 0 ? `
+          <label class="gift ${r.gift_card_used ? '' : 'off'}" title="This receipt used a gift card of ${money(r.gift_card)}.&#10;Not ticked: full amount, gift card included (normal).&#10;Ticked: gift card deducted, only what the bank card paid."><input type="checkbox" data-gift ${r.gift_card_used ? '' : 'checked'}> 🎁 Gift card ${money(r.gift_card)} ${r.gift_card_used ? 'included' : 'deducted'}</label>` : ''}</td>
         <td class="icons">
           <button class="icon" data-view="${esc(r.id)}" title="Open receipt: ${esc(r.file_name)}">${ICON.file}</button>
           <button class="icon del" data-del="${esc(r.id)}" title="Remove receipt">${ICON.trash}</button>
@@ -808,7 +917,9 @@ function flashSaved() { const s = $('#saved'); if (s) { s.classList.add('show');
 
 async function newVoucher() {
   try {
-    const v = await call('createVoucher', {});   // Google picks the next voucher number
+    // Google picks the next voucher number. Admins: in the center shown; members: always their own.
+    const center_id = centerFilter !== 'all' ? centerFilter : (current && current.center_id) || (centers[0] && centers[0].id);
+    const v = await call('createVoucher', center_id ? {center_id} : {});
     vouchers = vouchers.filter(x => x.id !== v.id); vouchers.unshift(v); changed();
     await openVoucher(v.id);
     toast(`Voucher ${v.voucher_no} created`);
@@ -1101,15 +1212,19 @@ function closeSearch() {
 
 // ============================================================ account & members
 function showMe() {
-  const n = me.reset_requests || 0;
-  $('#meAvatar').innerHTML = esc(initials(me.name)) + (n ? '<span class="reddot" title="Password reset requests"></span>' : '');
-  $('#openMembers').textContent = n ? `Members · ${n} password request${n === 1 ? '' : 's'}` : 'Members';
+  const n = me.reset_requests || 0, j = me.access_requests || 0;
+  $('#meAvatar').innerHTML = esc(initials(me.name)) + (n + j ? '<span class="reddot" title="Requests waiting for you"></span>' : '');
+  $('#openMembers').textContent = 'Members' + [j && `${j} asking to join`, n && `${n} password request${n === 1 ? '' : 's'}`].filter(Boolean).map(x => ' · ' + x).join('');
+  // A member of another center sees their own center's name under the app name.
+  const mine = !me.is_admin && centers[0];
+  document.querySelectorAll('.brand span, .lbrand span').forEach(el => { el.textContent = mine ? `${mine.name} · Reimbursements` : 'Gurukul USA · Reimbursements'; });
   $('#meName').textContent = me.name;
-  $('#meRole').textContent = me.is_admin ? 'Admin' : 'Member';
+  $('#meRole').textContent = me.is_super ? 'Super admin' : me.is_admin ? 'Admin' : 'Member';
   $('#openMembers').hidden = !me.is_admin;
   $('#openImport').hidden = !me.is_admin;
-  $('#backupNote').hidden = !backupInfo;
-  if (backupInfo) $('#backupNote').textContent = `This is the online backup of the Mac app (last copy received ${fmtDate(backupInfo.at.slice(0, 10))}, ${backupInfo.at.slice(11, 16)}). Enter and change receipts in the Mac app: changes made here are replaced by the Mac's copy.`;
+  // Members just work here. Admins see when the Mac app last copied (it copies both ways every minute or so).
+  $('#backupNote').hidden = !(backupInfo && me.is_admin);
+  if (backupInfo && me.is_admin) $('#backupNote').textContent = `Kept in sync with the Mac app both ways (last copy ${fmtDate(backupInfo.at.slice(0, 10))}, ${backupInfo.at.slice(11, 16)}). Members' changes reach the Mac within about a minute while the Mac app is open.`;
   $('#memberListLink').hidden = !me.member_list_url;
   if (me.member_list_url) $('#memberListLink').href = me.member_list_url;
 }
@@ -1134,42 +1249,78 @@ function tempPassword() {
 }
 
 async function openMembers(notice) {
-  let users;
-  try { users = await call('listMembers'); } catch (e) { return toast(e.message); }
+  let data;
+  try { data = await call('listMembers'); } catch (e) { return toast(e.message); }
+  const users = data.members, joins = data.requests, allCenters = data.centers;
+  centers = allCenters.filter(c => c.active);
   const requests = users.filter(u => u.reset_requested && u.active);
+  const centerOptions = (selected, onlyActive = true) => allCenters.filter(c => c.active || !onlyActive)
+    .map(c => `<option value="${esc(c.id)}" ${c.id === selected ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
   const el = modal('Members', `
     ${notice ? `<div class="notice"><div>${esc(notice.text)}</div>
-      <div class="cred"><span>Username <b>${esc(notice.username)}</b></span><span>Temporary password <b>${esc(notice.password)}</b></span>
+      ${notice.password ? `<div class="cred"><span>Username <b>${esc(notice.username)}</b></span><span>Temporary password <b>${esc(notice.password)}</b></span>
         <button type="button" class="btn small" id="copyCred">Copy</button></div>
-      <div class="hint">Send it to them now. It is also saved in the Members &amp; Passwords file. They will choose their own password when they sign in.</div></div>` : ''}
+      <div class="hint">Send it to them now. It is also saved in the Members &amp; Passwords file. They will choose their own password when they sign in.</div>` : ''}</div>` : ''}
+    ${joins.length ? `<div class="joins"><b>${plural(joins.length, 'person')} asking to join</b>
+      <ul>${joins.map(j => `<li data-jid="${esc(j.id)}">
+        <span class="who"><b>${esc(j.name)}</b><span>@${esc(j.username)} · ${esc(j.phone)}${j.email ? ' · ' + esc(j.email) : ''} · asked ${fmtDate(j.requested_at.slice(0, 10))}</span></span>
+        <label class="mini">Center<select data-jcenter>${centerOptions(j.center_id)}</select></label>
+        ${me.is_super ? '<label class="check mini"><input type="checkbox" data-jadmin> Admin</label>' : ''}
+        <button class="btn primary small" data-act="approve">Approve</button><button class="link" data-act="reject">Reject</button>
+      </li>`).join('')}</ul>
+      <p class="hint" style="margin:8px 0 0">They chose their own username and password. After you approve, they can sign in at once. Their details and password are also in the Members &amp; Passwords file.</p></div>` : ''}
     ${requests.length ? `<div class="reqs"><b>${plural(requests.length, 'password reset request')}</b>
       <ul>${requests.map(u => `<li data-uid="${esc(u.id)}"><span>${esc(u.name)} <span class="hint">@${esc(u.username)} · ${fmtDate(u.reset_requested.slice(0, 10))}</span></span>
         <button class="link" data-act="reset">Set temporary password</button><button class="link" data-act="dismiss">Dismiss</button></li>`).join('')}</ul></div>` : ''}
     <div id="resetSlot"></div>
-    ${me.member_list_url ? `<p class="hint" style="margin:0 0 12px"><a href="${esc(me.member_list_url)}" target="_blank" rel="noopener">Open the Members &amp; Passwords file</a> — every member, their role and their password. It opens only for the gurukul.requisition Google account.</p>` : ''}
+    ${me.member_list_url ? `<p class="hint" style="margin:0 0 12px"><a href="${esc(me.member_list_url)}" target="_blank" rel="noopener">Open the Members &amp; Passwords file</a> — every member and person asking to join: role, center, phone and password. It opens only for the gurukul.requisition Google account.</p>` : ''}
     <p class="section-title">${plural(users.filter(u => u.active).length, 'active member')}</p>
     <ul class="members">${users.map(u => `
       <li class="${u.active ? '' : 'off'}" data-uid="${esc(u.id)}">
         <span class="avatar">${esc(initials(u.name))}</span>
-        <span class="who"><b>${esc(u.name)} ${u.is_admin ? '<span class="badge">Admin</span>' : ''}</b><span>@${esc(u.username)}${u.id === me.id ? ' · you' : ''}${u.active ? '' : ' · turned off'}${u.must_change && u.active ? ' · has temporary password' : ''}</span></span>
-        ${u.id === me.id ? '' : `<button class="link" data-act="reset">Reset password</button>
-          <button class="link" data-act="admin">${u.is_admin ? 'Remove admin' : 'Make admin'}</button>
-          <button class="link" data-act="active">${u.active ? 'Turn off' : 'Turn on'}</button>`}
+        <span class="who"><b>${esc(u.name)} ${u.is_super ? '<span class="badge super">Super admin</span>' : u.is_admin ? '<span class="badge">Admin · all centers</span>' : ''}</b><span>@${esc(u.username)}${u.phone ? ' · ' + esc(u.phone) : ''}${u.id === me.id ? ' · you' : ''}${u.active ? '' : ' · turned off'}${u.must_change && u.active ? ' · has temporary password' : ''}</span></span>
+        ${allCenters.length > 1 && (me.is_super || !u.is_admin) ? `<label class="mini">Center<select data-mcenter>${centerOptions(u.center_id, false)}</select></label>` : ''}
+        ${u.id === me.id || u.is_super ? '' : `${me.is_super ? `<button class="link" data-act="reset">Reset password</button>
+          <button class="link" data-act="admin">${u.is_admin ? 'Remove admin' : 'Make admin'}</button>` : ''}
+          ${me.is_super || !u.is_admin ? `<button class="link" data-act="active">${u.active ? 'Turn off' : 'Turn on'}</button>` : ''}`}
       </li>`).join('')}</ul>
-    <p class="section-title">Add a member</p>
+    ${me.is_super ? `<p class="section-title">Add a member</p>
     <form id="addMember" autocomplete="off">
       <div class="form-grid">
         <label>Full name<input name="name" required maxlength="80" placeholder="e.g. Rameshbhai Patel"></label>
         <label>Username<input name="username" required maxlength="40" autocapitalize="none" spellcheck="false" placeholder="e.g. ramesh"></label>
+        <label>Phone<input name="phone" type="tel" maxlength="30"></label>
+        <label>Center<select name="center_id">${centerOptions(centerFilter !== 'all' ? centerFilter : 'c1')}</select></label>
         <label>Temporary password<input name="password" type="text" data-pw required minlength="8" maxlength="128" autocomplete="new-password"></label>
-        <label class="check" style="align-self:end;height:40px"><input type="checkbox" name="is_admin" style="height:auto"> Admin (can manage members)</label>
+        <label class="check" style="align-self:end;height:40px"><input type="checkbox" name="is_admin" style="height:auto"> Admin (all centers, manages members)</label>
       </div>
       <p class="form-err" id="memberErr"></p>
       <button class="btn primary">${ICON.plus} Add member</button>
-      <p class="hint" style="margin:12px 0 0">Give the member their username and this temporary password. When they first sign in, they choose their own password. Both are saved in the Members &amp; Passwords file.</p>
+      <p class="hint" style="margin:12px 0 0">Or send people the link: they can press “Request access” on the sign-in page, and you approve them here.</p>
+    </form>` : `<p class="hint">To add someone, send them the link: they press “Request access” on the sign-in page and choose their own password, then you approve them above. Only the super admin can see or reset passwords.</p>`}
+    <p class="section-title">Centers</p>
+    <p class="hint" style="margin:-4px 0 10px">Each center has its own vouchers and numbering. Members see only their center; admins see all. The form shows the center's name and address at the top.</p>
+    <ul class="centers">${allCenters.map(c => `
+      <li data-cid="${esc(c.id)}" class="${c.active ? '' : 'off'}">
+        <div class="form-grid">
+          <label>Center name<input data-cf="name" value="${esc(c.name)}" maxlength="80"></label>
+          <label>Name at the top of the form<input data-cf="form_title" value="${esc(c.form_title)}" maxlength="120"></label>
+          <label class="wide">Address line on the form<input data-cf="form_address" value="${esc(c.form_address)}" maxlength="200"></label>
+        </div>
+        <div class="row"><button class="btn small" data-act="savecenter">Save</button>
+          ${c.id === 'c1' ? '<span class="hint">First center</span>' : `<button class="link" data-act="togglecenter">${c.active ? 'Turn off' : 'Turn on'}</button>`}</div>
+      </li>`).join('')}</ul>
+    <form id="addCenter" autocomplete="off" class="center-add">
+      <div class="form-grid">
+        <label>New center name<input name="name" maxlength="80" placeholder="e.g. Gurukul Dallas"></label>
+        <label>Name at the top of the form<input name="form_title" maxlength="120" placeholder="e.g. SHREE SWAMINARAYAN GURUKUL DALLAS"></label>
+        <label class="wide">Address line on the form<input name="form_address" maxlength="200" placeholder="Street, City, State – ZIP, Tel, Email"></label>
+      </div>
+      <p class="form-err" id="centerErr"></p>
+      <button class="btn small">${ICON.plus} Add center</button>
     </form>`);
   addEyes(el);
-  const addForm = el.querySelector('#addMember');
+  const addForm = el.querySelector('#addMember') || {elements: {password: {}}};
   addForm.elements.password.value = tempPassword();
   addForm.onsubmit = async e => {
     e.preventDefault();
@@ -1178,10 +1329,29 @@ async function openMembers(notice) {
     if (f.get('password').length < 8) return err.textContent = 'The temporary password needs at least 8 characters.';
     const btn = addForm.querySelector('button.primary'); btn.disabled = true;
     try {
-      await call('addMember', {name: f.get('name'), username: f.get('username'), password: f.get('password'), is_admin: !!f.get('is_admin')});
+      await call('addMember', {name: f.get('name'), username: f.get('username'), password: f.get('password'), is_admin: !!f.get('is_admin'),
+                               phone: f.get('phone'), center_id: f.get('center_id')});
       openMembers({text: `${f.get('name').trim()} was added.`, username: f.get('username').trim(), password: f.get('password')});
     } catch (e2) { err.textContent = e2.message; btn.disabled = false; }
   };
+  el.querySelector('#addCenter').onsubmit = async e => {
+    e.preventDefault();
+    const f = new FormData(e.target), err = el.querySelector('#centerErr');
+    try {
+      await call('addCenter', {name: f.get('name'), form_title: f.get('form_title'), form_address: f.get('form_address')});
+      await sync(true); openMembers({text: `Center “${f.get('name').trim()}” was added. Add members to it, or approve people who ask to join it.`});
+    } catch (e2) { err.textContent = e2.message; }
+  };
+  el.querySelector('.modal-body').addEventListener('change', async e => {
+    const t = e.target;
+    try {
+      if ('mcenter' in t.dataset) {
+        const u = users.find(x => x.id === t.closest('li').dataset.uid);
+        await call('updateMember', {id: u.id, center_id: t.value});
+        toast(`${u.name} now works in ${allCenters.find(c => c.id === t.value).name}`);
+      }
+    } catch (err) { toast(err.message); openMembers(); }
+  });
   function showReset(u) {
     const slot = el.querySelector('#resetSlot');
     slot.innerHTML = `<form class="reset-box" id="resetForm">
@@ -1211,7 +1381,29 @@ async function openMembers(notice) {
   }
   el.querySelector('.modal-body').addEventListener('click', async e => {
     const b = e.target.closest('[data-act]'); if (!b) return;
-    const id = b.closest('li').dataset.uid, u = users.find(x => x.id === id);
+    const li = b.closest('li');
+    try {
+      if (b.dataset.act === 'approve' || b.dataset.act === 'reject') {
+        const j = joins.find(x => x.id === li.dataset.jid);
+        if (b.dataset.act === 'reject') {
+          if (!confirm(`Reject ${j.name}'s request to join? They will not be able to sign in.`)) return;
+          await call('rejectRequest', {id: j.id});
+          me = await call('me'); showMe(); return openMembers({text: `${j.name}'s request was rejected.`});
+        }
+        b.disabled = true;
+        await call('approveRequest', {id: j.id, center_id: li.querySelector('[data-jcenter]').value, is_admin: !!li.querySelector('[data-jadmin]')?.checked});
+        me = await call('me'); showMe();
+        return openMembers({text: `${j.name} is approved. They can now sign in as @${j.username} with the password they chose. Let them know!`});
+      }
+      if (b.dataset.act === 'savecenter' || b.dataset.act === 'togglecenter') {
+        const c = allCenters.find(x => x.id === li.dataset.cid), changes = {id: c.id};
+        if (b.dataset.act === 'togglecenter') changes.active = !c.active;
+        else li.querySelectorAll('[data-cf]').forEach(i => changes[i.dataset.cf] = i.value);
+        await call('updateCenter', changes);
+        await sync(true); return openMembers({text: `Center “${changes.name || c.name}” saved.`});
+      }
+    } catch (err) { b.disabled = false; return toast(err.message); }
+    const id = li.dataset.uid, u = users.find(x => x.id === id);
     try {
       if (b.dataset.act === 'reset') return showReset(u);
       if (b.dataset.act === 'dismiss') await call('dismissReset', {id});
@@ -1318,6 +1510,12 @@ $('#main').addEventListener('click', async e => {
   const dl = t.closest('[data-dl]'); if (dl) return download(dl.dataset.dl, dl);
   const dismiss = t.closest('[data-dismiss]');
   if (dismiss) { queue = queue.filter(q => q.key !== dismiss.dataset.dismiss); return renderQueue(); }
+  const okb = t.closest('[data-checkok]');
+  if (okb) {   // "I checked it, it's right"
+    const id = okb.closest('tr').dataset.id, r = current.receipts.find(x => x.id === id);
+    if (r) { r.check_ok = okb.dataset.checkok; viewStale = false; render(); save('updateReceipt', {id, changes: {check_ok: r.check_ok}}).catch(() => {}); }
+    return;
+  }
   try {
     const del = t.closest('[data-del]');
     if (del) {
@@ -1348,8 +1546,17 @@ $('#main').addEventListener('change', e => {
     const f = t.dataset.vfield;
     current[f] = t.value;
     if (f === 'voucher_no') { t.blur(); render(); }
+    if (f === 'center_id' && centerFilter !== 'all') { centerFilter = t.value; try { localStorage.setItem('rm_center', t.value); } catch (err) {} }
     showVouchers();
     save('updateVoucher', {id: current.id, changes: {[f]: t.value}}).catch(() => {});
+  } else if ('gift' in t.dataset) {   // ticked = deduct the gift card
+    const id = t.closest('tr').dataset.id, r = current.receipts.find(x => x.id === id);
+    if (!r) return;
+    const use = !t.checked;
+    if (use !== !!r.gift_card_used) { r.amount = round2((Number(r.amount) || 0) + (use ? 1 : -1) * Number(r.gift_card)); r.gift_card_used = use; }
+    sortReceipts(current); viewStale = false; render(); showVouchers();
+    save('updateReceipt', {id, changes: {gift_card_used: use}})
+      .then(out => { r.amount = out.amount; r.gift_card_used = out.gift_card_used; cache.save(); }, () => {});
   } else if (t.dataset.rfield) {
     const f = t.dataset.rfield, id = t.closest('tr').dataset.id, r = current.receipts.find(x => x.id === id);
     if (!r) return;
