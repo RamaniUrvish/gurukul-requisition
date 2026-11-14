@@ -1147,11 +1147,20 @@ async function download(kind, btn) {
 let searchTimer = null, searchSeq = 0;
 const terms = q => q.toLowerCase().split(/\s+/).map(t => t.replace(/,$/, '')).filter(Boolean);
 function hl(text, ts) {
-  let out = esc(text);
+  // Find every match in the plain text first, then escape: marking one word never breaks another's <mark> or an &amp;.
+  text = String(text ?? '');
+  const on = new Array(text.length).fill(false);
   for (const t of ts) {
     if (!/[a-z0-9]/i.test(t)) continue;
-    const pat = esc(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    out = out.replace(new RegExp(/\d/.test(t) ? `(?<![\\d.])(${pat})(?!\\d)` : `(${pat})`, 'gi'), '<mark>$1</mark>');
+    const pat = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const m of text.matchAll(new RegExp(/\d/.test(t) ? `(?<![\\d.])${pat}(?!\\d)` : pat, 'gi')))
+      for (let k = m.index; k < m.index + m[0].length; k++) on[k] = true;
+  }
+  let out = '', k = 0;
+  while (k < text.length) {
+    let j = k; while (j < text.length && on[j] === on[k]) j++;
+    out += on[k] ? `<mark>${esc(text.slice(k, j))}</mark>` : esc(text.slice(k, j));
+    k = j;
   }
   return out;
 }
@@ -1193,7 +1202,7 @@ async function runSearch(q) {
           <td class="rstore">${hl(r.store, ts)}</td>
           <td class="ritem" title="${esc((r.items || []).map(it => `${it.quantity} × ${it.name}`).join('\n'))}">${hl(r.description || r.file_name, ts)}
             ${(r.found_in || []).map(f => `<div class="found">Found in ${esc(f.field)}: ${hl(snippet(f.value, ts), ts)}</div>`).join('')}</td>
-          <td><span class="headtag"><i style="background:${headColor(r.head)}"></i>${hl(r.head, ts)}</span></td>
+          <td><span class="headtag"><i style="background:${headColor(r.head)}"></i><span>${hl(r.head, ts)}</span></span></td>
           <td><button class="vlink" data-goto="${esc(r.voucher_id)}" data-row="${esc(r.id)}">Voucher ${esc(r.voucher_no)}</button></td>
           <td class="ramt">${hl(money(r.amount), ts)}</td>
           <td class="icons"><button class="icon" data-view="${esc(r.id)}" title="Open receipt: ${esc(r.file_name)}">${ICON.file}</button></td>
